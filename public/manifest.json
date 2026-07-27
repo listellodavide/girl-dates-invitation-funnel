@@ -1,0 +1,23 @@
+{
+  "name": "Will you go on a date with me?",
+  "short_name": "Date Me 🌸",
+  "description": "A cute little funnel to plan our first date.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7dced",
+  "theme_color": "#f7dced",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
