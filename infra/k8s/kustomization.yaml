@@ -11,4 +11,4 @@ resources:
 images:
   - name: registry.adiwave.com/me/invitation-funnel
     newName: registry.adiwave.com/me/invitation-funnel
-    newTag: latest
+    newTag: develop-fa59300
