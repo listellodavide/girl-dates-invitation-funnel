@@ -1,0 +1,54 @@
+# Own Gateway, per the node's established per-project pattern (granite-gateway,
+# registry-gateway, veracrm-gateway, …) — there is no shared global gateway.
+# TLS terminates here with a cert-manager-issued Let's Encrypt certificate; the
+# plain-HTTP listener exists for the ACME HTTP-01 solver route.
+#
+# DNS: me.adiwave.group must be an A record to the node IP, DNS-only in
+# Cloudflare — proxying breaks ACME validation against the node.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: me-gateway
+  namespace: me-funnel
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  gatewayClassName: traefik
+  listeners:
+    - name: https-me-adiwave-group
+      hostname: me.adiwave.group
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: me-adiwave-group-tls
+      allowedRoutes:
+        namespaces:
+          from: Same
+    - name: http-me-adiwave-group
+      hostname: me.adiwave.group
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: invitation-funnel
+  namespace: me-funnel
+spec:
+  parentRefs:
+    - name: me-gateway
+  hostnames:
+    - "me.adiwave.group"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: invitation-funnel
+          port: 80

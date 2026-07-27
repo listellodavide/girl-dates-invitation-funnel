@@ -1,0 +1,79 @@
+# Invitation funnel — Next.js standalone server on the Hetzner node (vera1/node1).
+# Public at https://me.adiwave.group. Deployment is GitOps: CI builds and pushes
+# the image, then pins the immutable develop-<sha7> tag in kustomization.yaml;
+# ArgoCD syncs the cluster to whatever these manifests say.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: me-funnel
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: invitation-funnel
+  namespace: me-funnel
+  labels:
+    app: invitation-funnel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: invitation-funnel
+  template:
+    metadata:
+      labels:
+        app: invitation-funnel
+    spec:
+      # The registry is private; this secret is created once on the node
+      # (see infra/README.md) and is NOT in git.
+      imagePullSecrets:
+        - name: registry-credentials
+      containers:
+        - name: invitation-funnel
+          image: registry.adiwave.com/me/invitation-funnel:latest
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: NODE_ENV
+              value: production
+          resources:
+            requests:
+              cpu: 25m
+              memory: 96Mi
+            limits:
+              memory: 384Mi
+          # The app has no /api routes and no health endpoint; the root page is
+          # the honest readiness signal for a static-rendered Next.js site.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: invitation-funnel
+  namespace: me-funnel
+  labels:
+    app: invitation-funnel
+spec:
+  selector:
+    app: invitation-funnel
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

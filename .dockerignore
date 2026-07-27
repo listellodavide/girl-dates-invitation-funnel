@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+.github
+.idea
+.DS_Store
+infra
+npm-debug.log*
+pnpm-debug.log*

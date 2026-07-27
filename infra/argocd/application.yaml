@@ -1,0 +1,29 @@
+# ArgoCD Application for the invitation funnel. Applied ONCE by hand on the node
+# (it is not part of any kustomization it manages):
+#
+#   kubectl apply -f infra/argocd/application.yaml
+#
+# Re-apply after changing this file — ArgoCD does not manage its own parent
+# Application object.
+#
+# The repository is public, so ArgoCD clones it over HTTPS and no deploy key or
+# repo credential is needed.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: me-funnel
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/listellodavide/girl-dates-invitation-funnel.git
+    targetRevision: develop
+    path: infra/k8s
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
